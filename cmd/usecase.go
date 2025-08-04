@@ -142,26 +142,49 @@ func updateExistingUsecasesIndex(path, moduleName, serviceName, name string) err
 	}
 	contentStr := string(content)
 
+	// Cek apakah var sudah ada
 	existsPattern := fmt.Sprintf(`New%sUsecase\s*=`, serviceName)
 	exists, _ := regexp.MatchString(existsPattern, contentStr)
 	if exists {
 		return nil
 	}
 
-	newImport := fmt.Sprintf(`"%s/src/app/usecases/%s"`, moduleName, name)
+	// Format import baru
+	newImport := fmt.Sprintf("\t\"%s/src/app/usecases/%s\"", moduleName, name)
 
+	// Tambahkan import jika belum ada
 	if strings.Contains(contentStr, "import (") {
-		contentStr = regexp.MustCompile(`(?m)^import \(`).ReplaceAllString(contentStr, "import (\n\t"+newImport)
+		if !strings.Contains(contentStr, newImport) {
+			contentStr = regexp.MustCompile(`(?m)^import \(`).
+				ReplaceAllString(contentStr, "import (\n"+newImport)
+		}
 	} else {
-		contentStr = regexp.MustCompile(`(?m)^import\s+"[^"]+"`).ReplaceAllString(contentStr, "import (\n\t$0\n\t"+newImport+"\n)")
+		// Jika cuma ada single import, convert ke block import
+		singleImportRegex := regexp.MustCompile(`(?m)^import\s+"([^"]+)"`)
+		matches := singleImportRegex.FindStringSubmatch(contentStr)
+		if len(matches) > 0 {
+			oldImport := matches[0]
+			newBlock := fmt.Sprintf("import (\n\t\"%s\"\n%s\n)", matches[1], newImport)
+			contentStr = strings.Replace(contentStr, oldImport, newBlock, 1)
+		} else {
+			// Tidak ada import sama sekali
+			contentStr = strings.Replace(contentStr, "package usecases", "package usecases\n\nimport (\n"+newImport+"\n)", 1)
+		}
 	}
 
+	// Tambah var baru
 	newVar := fmt.Sprintf("\tNew%sUsecase = %s.New%sUsecase", serviceName, name, serviceName)
-	contentStr = regexp.MustCompile(`(?m)var \(([^)]+)\)`).ReplaceAllString(contentStr, "var (\n$1\n"+newVar+"\n)")
+	varBlockRegex := regexp.MustCompile(`(?m)var \(([^)]*)\)`)
+	contentStr = varBlockRegex.ReplaceAllStringFunc(contentStr, func(match string) string {
+		return match[:len(match)-1] + "\n" + newVar + "\n)"
+	})
 
+	// Format kode
 	formattedContent, err := format.Source([]byte(contentStr))
 	if err != nil {
+		log.Println("⚠️ Failed to format file, writing unformatted.")
 		formattedContent = []byte(contentStr)
 	}
+
 	return os.WriteFile(path, formattedContent, 0644)
 }
