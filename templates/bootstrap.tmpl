@@ -1,0 +1,32 @@
+// handler/{{ .Service }}_handler.go
+package handler
+
+type {{ .ServiceName }}Handler struct {
+	usecase *{{ .ServiceName }}Usecase
+}
+
+func New{{ .ServiceName }}Handler(u *{{ .ServiceName }}Usecase) *{{ .ServiceName }}Handler {
+	return &{{ .ServiceName }}Handler{
+		usecase: u,
+	}
+}
+
+---
+
+// usecase/{{ .Service }}_usecase.go
+package usecase
+
+type {{ .ServiceName }}Usecase struct {
+	repo *{{ .ServiceName }}Repository
+}
+
+func New{{ .ServiceName }}Usecase(r *{{ .ServiceName }}Repository) *{{ .ServiceName }}Usecase {
+	return &{{ .ServiceName }}Usecase{
+		repo: r,
+	}
+}
+
+---
+
+// repository/{{ .Service }}_repository.go
+package repository

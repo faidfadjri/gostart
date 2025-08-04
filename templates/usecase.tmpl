@@ -1,0 +1,12 @@
+package {{ .ServiceNameLower }}
+
+// {{ .ServiceName }}Usecase handles HTTP requests
+type {{ .ServiceName }}Usecase struct {
+	usecase *{{ .ServiceName }}Usecase
+}
+
+func New{{ .ServiceName }}Usecase(u *{{ .ServiceName }}Usecase) *{{ .ServiceName }}Usecase {
+	return &{{ .ServiceName }}Usecase{
+		usecase: u,
+	}
+}
