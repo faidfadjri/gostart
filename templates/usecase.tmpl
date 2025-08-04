@@ -1,12 +1,14 @@
 package {{ .ServiceNameLower }}
 
 // {{ .ServiceName }}Usecase handles HTTP requests
-type {{ .ServiceName }}Usecase struct {
-	usecase *{{ .ServiceName }}Usecase
+type {{ .ServiceNameLower }}Usecase struct {
+	// TODO
 }
 
-func New{{ .ServiceName }}Usecase(u *{{ .ServiceName }}Usecase) *{{ .ServiceName }}Usecase {
-	return &{{ .ServiceName }}Usecase{
-		usecase: u,
-	}
+func New{{ .ServiceName }}Usecase() {{ .ServiceName }}Usecase {
+	return &{{ .ServiceNameLower }}Usecase{}
+}
+
+func (t *{{ .ServiceNameLower }}Usecase) DoSomething() error {
+	return nil
 }

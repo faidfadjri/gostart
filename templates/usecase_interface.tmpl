@@ -1,6 +1,6 @@
 package {{ .ServiceNameLower }}
 
 // {{ .ServiceName }} defines the interface for {{ .ServiceName }} use case
-type {{ .ServiceName }} interface {
-	// Define your methods here
+type {{ .ServiceName }}Usecase interface {
+	DoSomething() error
 }
