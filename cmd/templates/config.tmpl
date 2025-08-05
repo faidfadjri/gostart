@@ -1,0 +1,40 @@
+package config
+
+import (
+	"os"
+)
+
+type Config struct {
+	Port     string
+	Database DatabaseConfig
+}
+
+type DatabaseConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	Name     string
+	SSLMode  string
+}
+
+func Load() *Config {
+	return &Config{
+		Port: getEnv("PORT", "8080"),
+		Database: DatabaseConfig{
+			Host:     getEnv("DB_HOST", "localhost"),
+			Port:     getEnv("DB_PORT", "3306"),
+			Username: getEnv("DB_USERNAME", "root"),
+			Password: getEnv("DB_PASSWORD", ""),
+			Name:     getEnv("DB_NAME", ""),
+			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+		},
+	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
