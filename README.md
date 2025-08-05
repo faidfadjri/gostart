@@ -28,12 +28,16 @@ src/
 
 ## ⚙️ Getting Started
 
-1. Copy the `.env.example` file to `.env` and update the environment variables as needed.
-2. Install the dependencies:
+1. Install Package
+   ```bash
+   go install github.com/faidfadjri/gostart@latest
+   ```
+2. Copy the `.env.example` file to `.env` and update the environment variables as needed.
+3. Install the dependencies:
    ```bash
    go mod tidy
    ```
-3. Run the application:
+4. Run the application:
    ```bash
    go run src/main.go
    ```
