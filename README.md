@@ -48,13 +48,15 @@ internal/
    ```bash
    go mod tidy
    ```
-4. Run the application:
+4. Install Air Verse for Hot Reload
    ```bash
-   <!-- install air verse -->
    go install github.com/air-verse/air@latest
+   ```
+5. Run the Application
+   ```bash
    air
    ```
-5. Congrats! Your API live now! Try to access it
+6. Congrats! Your API live now! Try to access it
    ```
    http://localhost:8000/
    ```
