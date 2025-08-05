@@ -39,7 +39,7 @@ src/
    ```
 4. Run the application:
    ```bash
-   go run src/main.go
+   air
    ```
 
 ---
