@@ -24,6 +24,17 @@ src/
     └── response/           # Response DTOs and formatters
 ```
 
+
+---
+## 💻 Required Dependencies
+| Dependency                                                            | Description                                                 | Link                                                 |
+| --------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| [go-chi/chi](https://github.com/go-chi/chi)                               | Lightweight, idiomatic web router for Go.                   | [GitHub](https://github.com/go-chi/chi)              |
+| [gorm](https://gorm.io/)                                              | The ORM for database interactions in Go.                    | [Website](https://gorm.io/)                          |
+| [cosmtrek/air](https://github.com/cosmtrek/air)                                | Live reloading for Go applications.                         | [GitHub](https://github.com/cosmtrek/air)            |
+| [godotenv](https://github.com/joho/godotenv)                          | Load environment variables from a `.env` file.              | [GitHub](https://github.com/joho/godotenv)           |
+| [MySQL](https://www.mysql.com/)                                       | The primary database used in the project.                   | [Website](https://www.mysql.com/)                    |
+| [go-chi/httprate](github.com/go-chi/httprate)              | Go Chi Rate Limiter                                         | [Github](github.com/go-chi/httprate)                 |
 ---
 
 ## ⚙️ Getting Started
@@ -69,6 +80,16 @@ gostart create feature <name>
 Replace `<name>` with your feature name (e.g., `user`, `task`, `auth`, etc).
 
 ---
+
+## 📚 About Dev
+I'm Mohamad Faid Fadjri, a dedicated and experienced fullstack developer with 3 years of experience building modern, scalable web apps and backend services.
+
+🌐 Portfolio: https://faidfadjri.github.io/
+
+✍️ Medium: https://medium.com/@faidfadjri
+
+💼 LinkedIn: https://linkedin.com/in/faidfadjri
+
 
 ## 📄 License
 
