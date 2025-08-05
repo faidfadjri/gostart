@@ -64,6 +64,9 @@ src/
 Use the following commands to generate boilerplate code:
 
 ```bash
+# Generate sample folder structure
+gostart init
+
 # Generate a new usecase
 gostart create usecase <name>
 
