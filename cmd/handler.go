@@ -34,7 +34,7 @@ var HandlerCmd = &cobra.Command{
 		serviceName := caser.String(last)
 
 		// Destination directory
-		destDir := filepath.Join("src/interface/handlers", filepath.Join(parts...))
+		destDir := filepath.Join("src/interface/handler")
 		if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 			log.Fatalf("❌ Failed to create handler directory: %v", err)
 		}

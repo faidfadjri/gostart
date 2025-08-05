@@ -39,9 +39,12 @@ var UsecaseCmd = &cobra.Command{
 			log.Fatalf("❌ Failed to create usecases directory: %v", err)
 		}
 
+		moduleName, _ := getModuleName()
+
 		templateData := types.TemplateData{
 			ServiceName:      serviceName,
 			ServiceNameLower: name,
+			ModuleName:       moduleName,
 		}
 
 		// Parse and write usecase.tmpl

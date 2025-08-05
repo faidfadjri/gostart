@@ -1,12 +1,20 @@
 package {{ .ServiceNameLower }}
 
+import(
+	"{{ .ModuleName }}/src/infrastructure/repositories"
+)
+
 // {{ .ServiceName }}Usecase handles HTTP requests
 type {{ .ServiceNameLower }}Usecase struct {
-	// TODO
+	{{ .ServiceNameLower }}Repository repositories.{{ .ServiceName }}Repository
 }
 
-func New{{ .ServiceName }}Usecase() {{ .ServiceName }}Usecase {
-	return &{{ .ServiceNameLower }}Usecase{}
+func New{{ .ServiceName }}Usecase(
+	repo repositories.{{ .ServiceName }}Repository,
+) {{ .ServiceName }}Usecase {
+	return &{{ .ServiceNameLower }}Usecase{
+		{{ .ServiceNameLower }}Repository: repo,
+	}
 }
 
 func (t *{{ .ServiceNameLower }}Usecase) DoSomething() error {

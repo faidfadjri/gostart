@@ -1,32 +1,28 @@
-// handler/{{ .Service }}_handler.go
-package handler
+package bootstrap
 
-type {{ .ServiceName }}Handler struct {
-	usecase *{{ .ServiceName }}Usecase
+import (
+	"gorm.io/gorm"
+)
+
+type Dependencies struct {
+	DB *gorm.DB
 }
 
-func New{{ .ServiceName }}Handler(u *{{ .ServiceName }}Usecase) *{{ .ServiceName }}Handler {
-	return &{{ .ServiceName }}Handler{
-		usecase: u,
+func InitDependencies() *Dependencies {
+
+    db, err := database.ConnectDB()
+
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+
+	// Repositories
+
+	// Usecases
+
+	// Handlers
+
+	return &Dependencies{
+		DB: nil,
 	}
 }
-
----
-
-// usecase/{{ .Service }}_usecase.go
-package usecase
-
-type {{ .ServiceName }}Usecase struct {
-	repo *{{ .ServiceName }}Repository
-}
-
-func New{{ .ServiceName }}Usecase(r *{{ .ServiceName }}Repository) *{{ .ServiceName }}Usecase {
-	return &{{ .ServiceName }}Usecase{
-		repo: r,
-	}
-}
-
----
-
-// repository/{{ .Service }}_repository.go
-package repository
