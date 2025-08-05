@@ -72,12 +72,12 @@ func resolveModuleName() string {
 
 func generateTemplateFiles(data types.TemplateData) {
 	files := map[string]string{
-		"cmd/main.go":                                 "templates/main.tmpl",
-		"src/app/bootstrap/bootstrap.go":              "templates/bootstrap.tmpl",
-		".air.toml":                                   "templates/air.tmpl",
-		"src/infrastructure/databases/db.go":          "templates/db.tmpl",
-		".gitignore":                                  "templates/gitignore.tmpl",
-		"README.md":                                   "templates/readme.tmpl",
+		"cmd/main.go":                        "templates/main.tmpl",
+		"src/app/bootstrap/bootstrap.go":     "templates/bootstrap.tmpl",
+		".air.toml":                          "templates/air.tmpl",
+		"src/infrastructure/databases/db.go": "templates/db.tmpl",
+		// ".gitignore":                         "templates/gitignore.tmpl",
+		// "README.md":                                   "templates/readme.tmpl",
 		".env.example":                                "templates/env.tmpl",
 		"src/app/config/config.go":                    "templates/config.tmpl",
 		"src/interface/response/response.go":          "templates/response.tmpl",
@@ -121,13 +121,35 @@ func renderTemplate(outputPath, templatePath string, data types.TemplateData) er
 }
 
 func printNextSteps() {
-	fmt.Println("\n🎉 Project structure initialized successfully!")
-	fmt.Println("📌 Next steps:")
-	fmt.Println("1. Copy `.env.example` to `.env` and configure it")
-	fmt.Println("2. Run: `go mod init your-project-name`")
-	fmt.Println("3. Run: `go mod tidy`")
-	fmt.Println("4. Run: `go run src/main.go`")
-	fmt.Println("🛠 Generate components with:")
-	fmt.Println("  gostart create usecase <name>")
-	fmt.Println("  gostart create repository <name>")
+	fmt.Print(`
+               ,_---~~~~~----._
+  _,,_,*^____      _____''*g*\"*,
+ / __/ /'     ^.  /      \ ^@q   f
+[  @f | @))    |  | @))   l  0 _/
+ \'/   \~____ / __ \_____/    \
+  |           _l__l_           I
+  }          [______]           |
+  ]            | | |            |
+  ]             ~ ~             |
+  |                            |
+   |   🐹 Go Project Ready!    |
+    \   ---------------------  /
+     ^._        ___        _,^
+        ^~--~^~^~^~^~^~--~^
+
+🎉 Project structure initialized successfully!
+`)
+
+	fmt.Println("📌 Next Steps:")
+	fmt.Println("1. 📄 Copy `.env.example` to `.env` and configure it")
+	fmt.Println("2. 🧱 Run: `go mod init <your-project-name>`")
+	fmt.Println("3. 📦 Run: `go mod tidy`")
+	fmt.Println("4. 🚀 Run: `go run src/main.go`")
+	fmt.Println("--------------------------------------------------")
+	fmt.Println("🛠 Generate components like a pro with:")
+	fmt.Println("  👉 gostart create usecase <name>")
+	fmt.Println("  👉 gostart create repository <name>")
+	fmt.Println("  👉 gostart feature <name> (auto generate all)")
+	fmt.Println("--------------------------------------------------")
+	fmt.Println("💙 Happy Coding! Don't forget to pet the gopher 🐹")
 }
