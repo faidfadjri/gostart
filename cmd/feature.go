@@ -105,7 +105,7 @@ func injectToBootstrap(name, pascal string) error {
 	}
 
 	// Inject Repository
-	repoLine := pascal + "Repo := repositories.New" + pascal + "Repository(db)"
+	repoLine := name + "Repo := repositories.New" + pascal + "Repository(db)"
 	if !strings.Contains(content, repoLine) {
 		content = injectAfter(content, "// Repositories", "\n\t"+repoLine)
 	}
