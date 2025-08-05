@@ -50,6 +50,8 @@ internal/
    ```
 4. Run the application:
    ```bash
+   <!-- install air verse -->
+   go install github.com/air-verse/air@latest
    air
    ```
 5. Congrats! Your API live now! Try to access it
