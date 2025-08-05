@@ -1,9 +1,13 @@
 package {{ .ServiceNameLower }}
 
 // {{ .ServiceName }}Repository handles data access
-type {{ .ServiceName }}Repository struct {
+type {{ .ServiceNameLower }}Repository struct {
 }
 
-func New{{ .ServiceName }}Repository() *{{ .ServiceName }}Repository {
-	return &{{ .ServiceName }}Repository{}
+func New{{ .ServiceName }}Repository() {{ .ServiceName }}Repository {
+	return &{{ .ServiceNameLower }}Repository{}
+}
+
+func (r *{{ .ServiceNameLower }}Repository) DoSomething() error {
+	return nil
 }

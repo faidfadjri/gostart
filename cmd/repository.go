@@ -19,24 +19,24 @@ import (
 	"golang.org/x/text/language"
 )
 
-//go:embed templates/usecase.tmpl
-var usecaseTemplate string
+//go:embed templates/repository.tmpl
+var repositoryTemplate string
 
-//go:embed templates/usecase_interface.tmpl
-var interfaceTemplate string
+//go:embed templates/repository_interface.tmpl
+var repositoryInterfaceTemplate string
 
-var UsecaseCmd = &cobra.Command{
-	Use:   "usecase [name]",
-	Short: "Create a new usecase",
+var RepositoryCmd = &cobra.Command{
+	Use:   "repository [name]",
+	Short: "Create a new repository",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		name := strings.ToLower(args[0])
 		caser := cases.Title(language.English)
 		serviceName := caser.String(name)
 
-		destDir := fmt.Sprintf("src/app/usecases/%s", name)
+		destDir := fmt.Sprintf("src/infrastructure/repositories/%s", name)
 		if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-			log.Fatalf("❌ Failed to create usecases directory: %v", err)
+			log.Fatalf("❌ Failed to create repositories directory: %v", err)
 		}
 
 		templateData := types.TemplateData{
@@ -44,25 +44,25 @@ var UsecaseCmd = &cobra.Command{
 			ServiceNameLower: name,
 		}
 
-		// Parse and write usecase.tmpl
-		tmpl, err := template.New("usecase").Parse(usecaseTemplate)
+		// Parse and write repository.tmpl
+		tmpl, err := template.New("repository").Parse(repositoryTemplate)
 		if err != nil {
-			log.Fatalf("❌ Failed to parse embedded usecase template: %v", err)
+			log.Fatalf("❌ Failed to parse embedded repository template: %v", err)
 		}
 		var buf bytes.Buffer
 		err = tmpl.Execute(&buf, templateData)
 		if err != nil {
-			log.Fatalf("❌ Failed to execute usecase template: %v", err)
+			log.Fatalf("❌ Failed to execute repository template: %v", err)
 		}
-		outputPath := filepath.Join(destDir, fmt.Sprintf("%s_usecase.go", name))
+		outputPath := filepath.Join(destDir, fmt.Sprintf("%s_repository.go", name))
 		err = os.WriteFile(outputPath, buf.Bytes(), 0644)
 		if err != nil {
-			log.Fatalf("❌ Failed to write usecase file: %v", err)
+			log.Fatalf("❌ Failed to write repository file: %v", err)
 		}
-		fmt.Println("✅ Usecase created at:", outputPath)
+		fmt.Println("✅ Repository created at:", outputPath)
 
-		// Parse and write usecase_interface.tmpl
-		interfaceTmpl, err := template.New("usecase_interface").Parse(interfaceTemplate)
+		// Parse and write repository_interface.tmpl
+		interfaceTmpl, err := template.New("repository_interface").Parse(repositoryInterfaceTemplate)
 		if err != nil {
 			log.Fatalf("❌ Failed to parse embedded interface template: %v", err)
 		}
@@ -78,38 +78,38 @@ var UsecaseCmd = &cobra.Command{
 		}
 		fmt.Println("✅ Interface created at:", interfacePath)
 
-		// Update usecases.go
-		err = createOrUpdateUsecasesIndex(serviceName, name)
+		// Update repositories.go
+		err = createOrUpdateRepositoriesIndex(serviceName, name)
 		if err != nil {
-			log.Fatalf("❌ Failed to create/update usecases.go: %v", err)
+			log.Fatalf("❌ Failed to create/update repositories.go: %v", err)
 		}
-		fmt.Println("✅ Usecases index updated at: src/app/usecases/usecases.go")
+		fmt.Println("✅ Repositories index updated at: src/infrastructure/repositories/repositories.go")
 	},
 }
 
-func createOrUpdateUsecasesIndex(serviceName, name string) error {
+func createOrUpdateRepositoriesIndex(serviceName, name string) error {
 	moduleName, err := getModuleName()
 	if err != nil {
 		return fmt.Errorf("failed to get module name: %w", err)
 	}
 
-	usecasesPath := "src/app/usecases/usecases.go"
+	repositoriesPath := "src/infrastructure/repositories/repositories.go"
 
-	if _, err := os.Stat(usecasesPath); os.IsNotExist(err) {
-		return createNewUsecasesIndex(usecasesPath, moduleName, serviceName, name)
+	if _, err := os.Stat(repositoriesPath); os.IsNotExist(err) {
+		return createNewRepositoriesIndex(repositoriesPath, moduleName, serviceName, name)
 	}
-	return updateExistingUsecasesIndex(usecasesPath, moduleName, serviceName, name)
+	return updateExistingRepositoriesIndex(repositoriesPath, moduleName, serviceName, name)
 }
 
-func createNewUsecasesIndex(path, moduleName, serviceName, name string) error {
-	content := fmt.Sprintf(`package usecases
+func createNewRepositoriesIndex(path, moduleName, serviceName, name string) error {
+	content := fmt.Sprintf(`package repositories
 
-import "%s/src/app/usecases/%s"
+import "%s/src/infrastructure/repositories/%s"
 
-type %sUsecase = %s.%sUsecase
+type %sRepository = %s.%sRepository
 
 var (
-	New%sUsecase = %s.New%sUsecase
+	New%sRepository = %s.New%sRepository
 )
 `, moduleName, name, serviceName, name, serviceName, serviceName, name, serviceName)
 
@@ -120,14 +120,14 @@ var (
 	return os.WriteFile(path, formattedContent, 0644)
 }
 
-// UsecaseEntry represents a single usecase entry
-type UsecaseEntry struct {
+// RepositoryEntry represents a single repository entry
+type RepositoryEntry struct {
 	Name        string // e.g., "user"
 	ServiceName string // e.g., "User"
 	ModuleName  string
 }
 
-func updateExistingUsecasesIndex(path, moduleName, serviceName, name string) error {
+func updateExistingRepositoriesIndex(path, moduleName, serviceName, name string) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -135,18 +135,18 @@ func updateExistingUsecasesIndex(path, moduleName, serviceName, name string) err
 	contentStr := string(content)
 
 	// Skip if already exists
-	if strings.Contains(contentStr, fmt.Sprintf("New%sUsecase", serviceName)) {
+	if strings.Contains(contentStr, fmt.Sprintf("New%sRepository", serviceName)) {
 		return nil
 	}
 
 	// Parse existing entries
-	entries, err := parseExistingEntries(contentStr, moduleName)
+	entries, err := parseExistingRepositoryEntries(contentStr, moduleName)
 	if err != nil {
 		return err
 	}
 
 	// Add new entry
-	entries = append(entries, UsecaseEntry{
+	entries = append(entries, RepositoryEntry{
 		Name:        name,
 		ServiceName: serviceName,
 		ModuleName:  moduleName,
@@ -158,27 +158,27 @@ func updateExistingUsecasesIndex(path, moduleName, serviceName, name string) err
 	})
 
 	// Generate clean content
-	newContent := generateCleanUsecasesFile(entries)
+	newContent := generateCleanRepositoriesFile(entries)
 
 	// Format the content
 	formatted, err := format.Source([]byte(newContent))
 	if err != nil {
-		log.Println("⚠️ Failed to format usecases.go, saving raw.")
+		log.Println("⚠️ Failed to format repositories.go, saving raw.")
 		formatted = []byte(newContent)
 	}
 
 	return os.WriteFile(path, formatted, 0644)
 }
 
-func parseExistingEntries(content, moduleName string) ([]UsecaseEntry, error) {
-	var entries []UsecaseEntry
+func parseExistingRepositoryEntries(content, moduleName string) ([]RepositoryEntry, error) {
+	var entries []RepositoryEntry
 
 	// Extract imports
-	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/src/app/usecases/([^"]+)"`)
+	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/src/infrastructure/repositories/([^"]+)"`)
 	importMatches := importRegex.FindAllStringSubmatch(content, -1)
 
 	// Extract type aliases
-	typeRegex := regexp.MustCompile(`(\w+)Usecase\s*=\s*(\w+)\.(\w+)Usecase`)
+	typeRegex := regexp.MustCompile(`(\w+)Repository\s*=\s*(\w+)\.(\w+)Repository`)
 	typeMatches := typeRegex.FindAllStringSubmatch(content, -1)
 
 	// Create a map for easier lookup
@@ -201,7 +201,7 @@ func parseExistingEntries(content, moduleName string) ([]UsecaseEntry, error) {
 
 			// Verify this entry exists in types
 			if _, exists := typeMap[serviceName]; exists {
-				entries = append(entries, UsecaseEntry{
+				entries = append(entries, RepositoryEntry{
 					Name:        packageName,
 					ServiceName: serviceName,
 					ModuleName:  moduleName,
@@ -213,16 +213,16 @@ func parseExistingEntries(content, moduleName string) ([]UsecaseEntry, error) {
 	return entries, nil
 }
 
-func generateCleanUsecasesFile(entries []UsecaseEntry) string {
+func generateCleanRepositoriesFile(entries []RepositoryEntry) string {
 	var buf strings.Builder
 
-	buf.WriteString("package usecases\n\n")
+	buf.WriteString("package repositories\n\n")
 
 	// Generate imports
 	if len(entries) > 0 {
 		buf.WriteString("import (\n")
 		for _, entry := range entries {
-			buf.WriteString(fmt.Sprintf("\t\"%s/src/app/usecases/%s\"\n", entry.ModuleName, entry.Name))
+			buf.WriteString(fmt.Sprintf("\t\"%s/src/infrastructure/repositories/%s\"\n", entry.ModuleName, entry.Name))
 		}
 		buf.WriteString(")\n\n")
 	}
@@ -231,7 +231,7 @@ func generateCleanUsecasesFile(entries []UsecaseEntry) string {
 	if len(entries) > 0 {
 		buf.WriteString("type (\n")
 		for _, entry := range entries {
-			buf.WriteString(fmt.Sprintf("\t%sUsecase = %s.%sUsecase\n", entry.ServiceName, entry.Name, entry.ServiceName))
+			buf.WriteString(fmt.Sprintf("\t%sRepository = %s.%sRepository\n", entry.ServiceName, entry.Name, entry.ServiceName))
 		}
 		buf.WriteString(")\n\n")
 	}
@@ -240,7 +240,7 @@ func generateCleanUsecasesFile(entries []UsecaseEntry) string {
 	if len(entries) > 0 {
 		buf.WriteString("var (\n")
 		for _, entry := range entries {
-			buf.WriteString(fmt.Sprintf("\tNew%sUsecase = %s.New%sUsecase\n", entry.ServiceName, entry.Name, entry.ServiceName))
+			buf.WriteString(fmt.Sprintf("\tNew%sRepository = %s.New%sRepository\n", entry.ServiceName, entry.Name, entry.ServiceName))
 		}
 		buf.WriteString(")\n")
 	}
