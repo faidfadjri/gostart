@@ -1,11 +1,13 @@
 package handler
 
+import "{{ .ModuleName }}/src/app/usecases"
+
 // {{ .ServiceName }}Handler handles HTTP requests
 type {{ .ServiceName }}Handler struct {
-	usecase *{{ .ServiceName }}Usecase
+	usecase usecases.{{ .ServiceName }}Usecase
 }
 
-func New{{ .ServiceName }}Handler(u *{{ .ServiceName }}Usecase) *{{ .ServiceName }}Handler {
+func New{{ .ServiceName }}Handler(u usecases.{{ .ServiceName }}Usecase) *{{ .ServiceName }}Handler {
 	return &{{ .ServiceName }}Handler{
 		usecase: u,
 	}

@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -123,16 +124,25 @@ func createNewUsecasesIndex(path, moduleName, serviceName, name string) error {
 
 import "%s/src/app/usecases/%s"
 
+type %sUsecase = %s.%sUsecase
+
 var (
 	New%sUsecase = %s.New%sUsecase
 )
-`, moduleName, name, serviceName, name, serviceName)
+`, moduleName, name, serviceName, name, serviceName, serviceName, name, serviceName)
 
 	formattedContent, err := format.Source([]byte(content))
 	if err != nil {
 		formattedContent = []byte(content)
 	}
 	return os.WriteFile(path, formattedContent, 0644)
+}
+
+// UsecaseEntry represents a single usecase entry
+type UsecaseEntry struct {
+	Name        string // e.g., "user"
+	ServiceName string // e.g., "User"
+	ModuleName  string
 }
 
 func updateExistingUsecasesIndex(path, moduleName, serviceName, name string) error {
@@ -142,49 +152,116 @@ func updateExistingUsecasesIndex(path, moduleName, serviceName, name string) err
 	}
 	contentStr := string(content)
 
-	// Cek apakah var sudah ada
-	existsPattern := fmt.Sprintf(`New%sUsecase\s*=`, serviceName)
-	exists, _ := regexp.MatchString(existsPattern, contentStr)
-	if exists {
+	// Skip if already exists
+	if strings.Contains(contentStr, fmt.Sprintf("New%sUsecase", serviceName)) {
 		return nil
 	}
 
-	// Format import baru
-	newImport := fmt.Sprintf("\t\"%s/src/app/usecases/%s\"", moduleName, name)
-
-	// Tambahkan import jika belum ada
-	if strings.Contains(contentStr, "import (") {
-		if !strings.Contains(contentStr, newImport) {
-			contentStr = regexp.MustCompile(`(?m)^import \(`).
-				ReplaceAllString(contentStr, "import (\n"+newImport)
-		}
-	} else {
-		// Jika cuma ada single import, convert ke block import
-		singleImportRegex := regexp.MustCompile(`(?m)^import\s+"([^"]+)"`)
-		matches := singleImportRegex.FindStringSubmatch(contentStr)
-		if len(matches) > 0 {
-			oldImport := matches[0]
-			newBlock := fmt.Sprintf("import (\n\t\"%s\"\n%s\n)", matches[1], newImport)
-			contentStr = strings.Replace(contentStr, oldImport, newBlock, 1)
-		} else {
-			// Tidak ada import sama sekali
-			contentStr = strings.Replace(contentStr, "package usecases", "package usecases\n\nimport (\n"+newImport+"\n)", 1)
-		}
+	// Parse existing entries
+	entries, err := parseExistingEntries(contentStr, moduleName)
+	if err != nil {
+		return err
 	}
 
-	// Tambah var baru
-	newVar := fmt.Sprintf("\tNew%sUsecase = %s.New%sUsecase", serviceName, name, serviceName)
-	varBlockRegex := regexp.MustCompile(`(?m)var \(([^)]*)\)`)
-	contentStr = varBlockRegex.ReplaceAllStringFunc(contentStr, func(match string) string {
-		return match[:len(match)-1] + "\n" + newVar + "\n)"
+	// Add new entry
+	entries = append(entries, UsecaseEntry{
+		Name:        name,
+		ServiceName: serviceName,
+		ModuleName:  moduleName,
 	})
 
-	// Format kode
-	formattedContent, err := format.Source([]byte(contentStr))
+	// Sort entries by service name for consistency
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].ServiceName < entries[j].ServiceName
+	})
+
+	// Generate clean content
+	newContent := generateCleanUsecasesFile(entries)
+
+	// Format the content
+	formatted, err := format.Source([]byte(newContent))
 	if err != nil {
-		log.Println("⚠️ Failed to format file, writing unformatted.")
-		formattedContent = []byte(contentStr)
+		log.Println("⚠️ Failed to format usecases.go, saving raw.")
+		formatted = []byte(newContent)
 	}
 
-	return os.WriteFile(path, formattedContent, 0644)
+	return os.WriteFile(path, formatted, 0644)
+}
+
+func parseExistingEntries(content, moduleName string) ([]UsecaseEntry, error) {
+	var entries []UsecaseEntry
+
+	// Extract imports
+	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/src/app/usecases/([^"]+)"`)
+	importMatches := importRegex.FindAllStringSubmatch(content, -1)
+
+	// Extract type aliases
+	typeRegex := regexp.MustCompile(`(\w+)Usecase\s*=\s*(\w+)\.(\w+)Usecase`)
+	typeMatches := typeRegex.FindAllStringSubmatch(content, -1)
+
+	// Create a map for easier lookup
+	typeMap := make(map[string]string) // serviceName -> name
+	for _, match := range typeMatches {
+		if len(match) >= 4 {
+			serviceName := match[1] // e.g., "User"
+			packageName := match[2] // e.g., "user"
+			typeMap[serviceName] = packageName
+		}
+	}
+
+	// Build entries based on imports
+	for _, match := range importMatches {
+		if len(match) >= 2 {
+			packageName := match[1] // e.g., "user"
+			// Convert to service name (capitalize first letter)
+			caser := cases.Title(language.English)
+			serviceName := caser.String(packageName)
+
+			// Verify this entry exists in types
+			if _, exists := typeMap[serviceName]; exists {
+				entries = append(entries, UsecaseEntry{
+					Name:        packageName,
+					ServiceName: serviceName,
+					ModuleName:  moduleName,
+				})
+			}
+		}
+	}
+
+	return entries, nil
+}
+
+func generateCleanUsecasesFile(entries []UsecaseEntry) string {
+	var buf strings.Builder
+
+	buf.WriteString("package usecases\n\n")
+
+	// Generate imports
+	if len(entries) > 0 {
+		buf.WriteString("import (\n")
+		for _, entry := range entries {
+			buf.WriteString(fmt.Sprintf("\t\"%s/src/app/usecases/%s\"\n", entry.ModuleName, entry.Name))
+		}
+		buf.WriteString(")\n\n")
+	}
+
+	// Generate type aliases
+	if len(entries) > 0 {
+		buf.WriteString("type (\n")
+		for _, entry := range entries {
+			buf.WriteString(fmt.Sprintf("\t%sUsecase = %s.%sUsecase\n", entry.ServiceName, entry.Name, entry.ServiceName))
+		}
+		buf.WriteString(")\n\n")
+	}
+
+	// Generate var block
+	if len(entries) > 0 {
+		buf.WriteString("var (\n")
+		for _, entry := range entries {
+			buf.WriteString(fmt.Sprintf("\tNew%sUsecase = %s.New%sUsecase\n", entry.ServiceName, entry.Name, entry.ServiceName))
+		}
+		buf.WriteString(")\n")
+	}
+
+	return buf.String()
 }

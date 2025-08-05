@@ -8,7 +8,6 @@ var CreateCmd = &cobra.Command{
 }
 
 func init() {
-	CreateCmd.AddCommand(ServiceCmd)
 	CreateCmd.AddCommand(HandlerCmd)
 	CreateCmd.AddCommand(UsecaseCmd)
 }
