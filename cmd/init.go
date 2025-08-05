@@ -1,13 +1,26 @@
 package cmd
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"text/template"
 
+	"github.com/faidfadjri/gostart/cmd/types"
 	"github.com/spf13/cobra"
 )
+
+//go:embed templates/main.tmpl
+var mainTemplate string
+
+//go:embed templates/db.tmpl
+var dbTemplate string
+
+//go:embed templates/gitignore.tmpl
+var gitignoreTemplate string
 
 var InitCmd = &cobra.Command{
 	Use:   "init",
@@ -38,41 +51,36 @@ var InitCmd = &cobra.Command{
 			fmt.Printf("✅ Created directory: %s\n", folder)
 		}
 
-		// Create initial files
-		files := map[string]string{
-			"src/main.go": `package main
+		// Get module name for templates
+		moduleName, err := getModuleName()
+		if err != nil {
+			log.Printf("⚠️ Could not get module name: %v. Using placeholder.", err)
+			moduleName = "your-project-name"
+		}
 
-import (
-	"encoding/json"
-	"log"
-	"net/http"
+		templateData := types.TemplateData{
+			ServiceName:      "",
+			ServiceNameLower: "",
+			ModuleName:       moduleName,
+		}
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-)
+		// Generate templated files
+		templatedFiles := map[string]string{
+			"src/main.go":                        mainTemplate,
+			"src/infrastructure/databases/db.go": dbTemplate,
+			".gitignore":                         gitignoreTemplate,
+		}
 
-func main() {
-	r := chi.NewRouter()
-	
-	// Middleware
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RequestID)
-	
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Hello, World!",
-		})
-	})
+		for filePath, tmplContent := range templatedFiles {
+			if err := generateTemplatedFile(filePath, tmplContent, templateData); err != nil {
+				log.Fatalf("❌ Failed to generate %s: %v", filePath, err)
+			}
+			fmt.Printf("✅ Generated file: %s\n", filePath)
+		}
 
-	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		log.Fatal("Failed to start server:", err)
-	}
-}
-`,
-			"src/config/config.go": `package config
+		// Create static files
+		staticFiles := map[string]string{
+			"src/app/config/config.go": `package config
 
 import (
 	"os"
@@ -89,6 +97,7 @@ type DatabaseConfig struct {
 	Username string
 	Password string
 	Name     string
+	SSLMode  string
 }
 
 func Load() *Config {
@@ -100,6 +109,7 @@ func Load() *Config {
 			Username: getEnv("DB_USERNAME", ""),
 			Password: getEnv("DB_PASSWORD", ""),
 			Name:     getEnv("DB_NAME", ""),
+			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
 	}
 }
@@ -111,89 +121,162 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 `,
-			"src/pkg/responses/response.go": `package responses
+			"src/interface/response/response.go": `package response
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-type Response struct {
+type APIResponse struct {
 	Success bool        ` + "`json:\"success\"`" + `
 	Message string      ` + "`json:\"message\"`" + `
 	Data    interface{} ` + "`json:\"data,omitempty\"`" + `
-	Error   interface{} ` + "`json:\"error,omitempty\"`" + `
+	Errors  any         ` + "`json:\"error,omitempty\"`" + `
 }
 
-func writeJSON(w http.ResponseWriter, statusCode int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(data)
-}
-
-func Success(w http.ResponseWriter, message string, data interface{}) {
-	writeJSON(w, http.StatusOK, Response{
+func NewSuccessResponse(message string, data interface{}) APIResponse {
+	return APIResponse{
 		Success: true,
 		Message: message,
 		Data:    data,
-	})
+	}
 }
 
-func Error(w http.ResponseWriter, statusCode int, message string, err interface{}) {
-	writeJSON(w, statusCode, Response{
+func NewErrorResponse(message string, err any) APIResponse {
+	var errorData any
+	switch e := err.(type) {
+	case error:
+		errorData = e.Error()
+	case map[string]string, map[string]any:
+		errorData = e
+	default:
+		errorData = e
+	}
+	
+	return APIResponse{
 		Success: false,
 		Message: message,
-		Error:   err,
-	})
+		Errors:  errorData,
+	}
 }
 
-func BadRequest(w http.ResponseWriter, message string, err interface{}) {
-	Error(w, http.StatusBadRequest, message, err)
+func JSONResponse(w http.ResponseWriter, statusCode int, resp APIResponse) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(resp)
 }
 
-func InternalServerError(w http.ResponseWriter, message string, err interface{}) {
-	Error(w, http.StatusInternalServerError, message, err)
+// Convenience functions for common responses
+func Success(w http.ResponseWriter, message string, data interface{}) {
+	JSONResponse(w, http.StatusOK, NewSuccessResponse(message, data))
 }
 
-func NotFound(w http.ResponseWriter, message string) {
-	Error(w, http.StatusNotFound, message, nil)
+func Created(w http.ResponseWriter, message string, data interface{}) {
+	JSONResponse(w, http.StatusCreated, NewSuccessResponse(message, data))
 }
 
-func Unauthorized(w http.ResponseWriter, message string) {
-	Error(w, http.StatusUnauthorized, message, nil)
+func BadRequest(w http.ResponseWriter, message string, err any) {
+	JSONResponse(w, http.StatusBadRequest, NewErrorResponse(message, err))
+}
+
+func Unauthorized(w http.ResponseWriter, message string, err any) {
+	JSONResponse(w, http.StatusUnauthorized, NewErrorResponse(message, err))
+}
+
+func Forbidden(w http.ResponseWriter, message string, err any) {
+	JSONResponse(w, http.StatusForbidden, NewErrorResponse(message, err))
+}
+
+func NotFound(w http.ResponseWriter, message string, err any) {
+	JSONResponse(w, http.StatusNotFound, NewErrorResponse(message, err))
+}
+
+func InternalServerError(w http.ResponseWriter, message string, err any) {
+	JSONResponse(w, http.StatusInternalServerError, NewErrorResponse(message, err))
 }
 `,
-			"src/pkg/errors/errors.go": `package errors
+			"src/interface/request/request.go": `package request
 
-import "errors"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
 
-var (
-	ErrNotFound      = errors.New("resource not found")
-	ErrUnauthorized  = errors.New("unauthorized access")
-	ErrBadRequest    = errors.New("bad request")
-	ErrInternalError = errors.New("internal server error")
-	ErrValidation    = errors.New("validation error")
+	"github.com/go-chi/chi/v5"
 )
 
-type AppError struct {
-	Code    int
-	Message string
-	Err     error
+// ParseJSON parses JSON request body into the provided struct
+func ParseJSON(r *http.Request, v interface{}) error {
+	if r.Body == nil {
+		return fmt.Errorf("request body is empty")
+	}
+	defer r.Body.Close()
+	
+	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
+		return fmt.Errorf("invalid JSON format: %w", err)
+	}
+	
+	return nil
 }
 
-func (e *AppError) Error() string {
-	if e.Err != nil {
-		return e.Err.Error()
-	}
-	return e.Message
+// GetURLParam gets URL parameter from chi router
+func GetURLParam(r *http.Request, key string) string {
+	return chi.URLParam(r, key)
 }
 
-func NewAppError(code int, message string, err error) *AppError {
-	return &AppError{
-		Code:    code,
-		Message: message,
-		Err:     err,
+// GetURLParamInt gets URL parameter as integer
+func GetURLParamInt(r *http.Request, key string) (int, error) {
+	param := chi.URLParam(r, key)
+	if param == "" {
+		return 0, fmt.Errorf("parameter %s is required", key)
 	}
+	
+	value, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, fmt.Errorf("parameter %s must be a valid integer", key)
+	}
+	
+	return value, nil
+}
+
+// GetQueryParam gets query parameter from request
+func GetQueryParam(r *http.Request, key string) string {
+	return r.URL.Query().Get(key)
+}
+
+// GetQueryParamInt gets query parameter as integer
+func GetQueryParamInt(r *http.Request, key string) (int, error) {
+	param := r.URL.Query().Get(key)
+	if param == "" {
+		return 0, fmt.Errorf("query parameter %s is required", key)
+	}
+	
+	value, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, fmt.Errorf("query parameter %s must be a valid integer", key)
+	}
+	
+	return value, nil
+}
+
+// GetQueryParamWithDefault gets query parameter with default value
+func GetQueryParamWithDefault(r *http.Request, key, defaultValue string) string {
+	if value := r.URL.Query().Get(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+`,
+			"src/infrastructure/databases/models/base.go": `package models
+
+import "time"
+
+type BaseModel struct {
+	ID        int       ` + "`json:\"id\" db:\"id\"`" + `
+	CreatedAt time.Time ` + "`json:\"created_at\" db:\"created_at\"`" + `
+	UpdatedAt time.Time ` + "`json:\"updated_at\" db:\"updated_at\"`" + `
 }
 `,
 			".env.example": `# Server Configuration
@@ -205,61 +288,13 @@ DB_PORT=5432
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
 DB_NAME=your_database
+DB_SSLMODE=disable
 
 # JWT Configuration
 JWT_SECRET=your_jwt_secret_key
 
 # Other Configuration
 APP_ENV=development
-`,
-			".gitignore": `# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, built with "go test -c"
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# Dependency directories (remove the comment below to include it)
-vendor/
-
-# Go workspace file
-go.work
-
-# Environment files
-.env
-.env.local
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Logs
-*.log
-
-# Binary
-main
-app
-
-# Temporary files
-tmp/
-temp/
 `,
 			"README.md": `# Go Project
 
@@ -270,21 +305,19 @@ This project was generated using gostart.
 ` + "```" + `
 src/
 ├── app/
-│   ├── controllers/      # HTTP handlers
-│   ├── middlewares/      # HTTP middlewares
-│   ├── models/          # Data models
-│   ├── repositories/    # Data access layer
-│   ├── usecases/       # Business logic
-│   └── services/       # External services
-├── config/             # Configuration
-├── database/          # Database related files
-│   ├── migrations/    # Database migrations
-│   └── seeders/      # Database seeders
-└── pkg/              # Shared packages
-    ├── utils/        # Utility functions
-    ├── validators/   # Input validators
-    ├── errors/      # Custom errors
-    └── responses/   # HTTP response helpers
+│   ├── controllers/         # Business logic controllers
+│   ├── usecases/           # Application use cases
+│   └── config/             # Application configuration
+├── infrastructure/
+│   ├── middlewares/        # HTTP middlewares
+│   ├── databases/          # Database connections and models
+│   │   └── models/         # Database models
+│   ├── repositories/       # Data access layer
+│   └── services/          # External services
+└── interface/
+    ├── handlers/           # HTTP request handlers
+    ├── request/           # Request DTOs and parsers
+    └── response/          # Response DTOs and helpers
 ` + "```" + `
 
 ## Getting Started
@@ -311,8 +344,8 @@ This project is licensed under the MIT License.
 `,
 		}
 
-		// Create files
-		for filePath, content := range files {
+		// Create static files
+		for filePath, content := range staticFiles {
 			// Create directory if it doesn't exist
 			dir := filepath.Dir(filePath)
 			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
@@ -339,4 +372,31 @@ This project is licensed under the MIT License.
 		fmt.Println("  gostart create usecase <name>")
 		fmt.Println("  gostart create repository <name>")
 	},
+}
+
+func generateTemplatedFile(filePath, tmplContent string, data types.TemplateData) error {
+	// Create directory if it doesn't exist
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create directory for %s: %w", filePath, err)
+	}
+
+	// Parse template
+	tmpl, err := template.New(filepath.Base(filePath)).Parse(tmplContent)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	// Execute template
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	// Write file
+	if err := os.WriteFile(filePath, buf.Bytes(), 0644); err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
 }

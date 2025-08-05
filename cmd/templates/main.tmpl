@@ -1,0 +1,61 @@
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"{{.ModuleName}}/src/app/config"
+	"{{.ModuleName}}/src/infrastructure/databases"
+)
+
+func main() {
+	cfg := config.Load()
+	
+	// Connect to database
+	db, err := database.ConnectDB()
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+	
+	// Get underlying sql.DB for connection management
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("Failed to get underlying sql.DB:", err)
+	}
+	defer sqlDB.Close()
+	
+	log.Println("✅ Database connected successfully")
+	
+	r := chi.NewRouter()
+	
+	// Middleware
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	
+	// Health check endpoint
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "OK",
+			"message": "Server is running",
+		})
+	})
+	
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Hello, World!",
+			"app": "{{.ModuleName}}",
+		})
+	})
+
+	log.Printf("🚀 Server starting on :%s", cfg.Port)
+	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
+}
