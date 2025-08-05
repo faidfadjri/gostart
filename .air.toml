@@ -1,8 +1,0 @@
-[build]
-# Ensure the output binary is an .exe file for Windows
-cmd = "go build -o ./tmp/main.exe ./cmd/main.go"
-bin = "tmp/main.exe"
-
-[runner]
-# Run the executable with full path and quotes to handle spaces
-cmd = "\"./tmp/main.exe\""
