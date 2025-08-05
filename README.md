@@ -1,6 +1,6 @@
-# Go Project
+# GoStart 🚀
 
-This project was generated using gostart.
+gostart is a mini code generator that you can used for creating clean structure for your Go Project such as usecases,repositories, handlers etc
 
 ## Project Structure
 
