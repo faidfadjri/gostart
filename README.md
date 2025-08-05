@@ -57,6 +57,9 @@ gostart create repository <name>
 
 # Generate a new handler
 gostart create handler <name>
+
+# Generate a new feature it will generate: repository, usecase, handler
+gostart create feature <name>
 ```
 
 Replace `<name>` with your feature name (e.g., `user`, `task`, `auth`, etc).
