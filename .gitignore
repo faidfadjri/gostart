@@ -1,2 +1,5 @@
 .env
 src
+.air.toml
+.env.example
+cmd/main.go

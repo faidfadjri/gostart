@@ -72,7 +72,7 @@ func resolveModuleName() string {
 
 func generateTemplateFiles(data types.TemplateData) {
 	files := map[string]string{
-		"src/cmd/main.go":                             "templates/main.tmpl",
+		"cmd/main.go":                                 "templates/main.tmpl",
 		"src/app/bootstrap/bootstrap.go":              "templates/bootstrap.tmpl",
 		".air.toml":                                   "templates/air.tmpl",
 		"src/infrastructure/databases/db.go":          "templates/db.tmpl",

@@ -1,11 +1,16 @@
 package {{ .ServiceNameLower }}
 
+import (
+	"gorm.io/gorm"
+)
+
 // {{ .ServiceName }}Repository handles data access
 type {{ .ServiceNameLower }}Repository struct {
+	db *gorm.DB
 }
 
-func New{{ .ServiceName }}Repository() {{ .ServiceName }}Repository {
-	return &{{ .ServiceNameLower }}Repository{}
+func New{{ .ServiceName }}Repository(db *gorm.DB) {{ .ServiceName }}Repository {
+	return &{{ .ServiceNameLower }}Repository{db: db}
 }
 
 func (r *{{ .ServiceNameLower }}Repository) DoSomething() error {

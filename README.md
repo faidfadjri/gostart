@@ -1,13 +1,15 @@
-# github.com/faidfadjri/gostart
+# GoStart 🚀
 
-This project was generated using gostart.
+**GoStart** is a lightweight code generator tool to help you quickly build a clean and maintainable Go project structure following the **Hexagonal Architecture** pattern.
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```
 src/
 ├── app/
-│   ├── controllers/         # Business logic controllers
+│   ├── controllers/        # Business logic controllers
 │   ├── usecases/           # Application use cases
 │   └── config/             # Application configuration
 ├── infrastructure/
@@ -15,31 +17,48 @@ src/
 │   ├── databases/          # Database connections and models
 │   │   └── models/         # Database models
 │   ├── repositories/       # Data access layer
-│   └── services/          # External services
+│   └── services/           # External/internal services
 └── interface/
-    ├── handlers/           # HTTP request handlers
-    ├── request/           # Request DTOs and parsers
-    └── response/          # Response DTOs and helpers
+    ├── handlers/           # HTTP handlers
+    ├── request/            # Request DTOs and parsers
+    └── response/           # Response DTOs and formatters
 ```
 
-## Getting Started
+---
 
-1. Copy `.env.example` to `.env` and configure your environment variables
-2. Install dependencies: `go mod tidy`
-3. Run the application: `go run src/main.go`
+## ⚙️ Getting Started
 
-## Commands
+1. Copy the `.env.example` file to `.env` and update the environment variables as needed.
+2. Install the dependencies:
+   ```bash
+   go mod tidy
+   ```
+3. Run the application:
+   ```bash
+   go run src/main.go
+   ```
 
-Generate new components using gostart:
+---
+
+## 🛠️ CLI Commands
+
+Use the following commands to generate boilerplate code:
 
 ```bash
-# Generate usecase
-gostart create usecase user
+# Generate a new usecase
+gostart create usecase <name>
 
-# Generate repository  
-gostart create repository user
+# Generate a new repository
+gostart create repository <name>
+
+# Generate a new handler
+gostart create handler <name>
 ```
 
-## License
+Replace `<name>` with your feature name (e.g., `user`, `task`, `auth`, etc).
 
-This project is licensed under the MIT License.
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.

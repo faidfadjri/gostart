@@ -1,7 +1,9 @@
 package bootstrap
 
 import (
+	"log"
 	"gorm.io/gorm"
+	database "{{ .ModuleName }}/src/infrastructure/databases"
 )
 
 type Dependencies struct {
