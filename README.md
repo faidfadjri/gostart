@@ -41,6 +41,10 @@ src/
    ```bash
    air
    ```
+5. Congrats! Your API live now! Try to access it
+   ```
+   http://localhost:8000/
+   ```
 
 ---
 

@@ -3,3 +3,5 @@
 .air.toml
 cmd/main.go
 src
+tmp
+log.txt

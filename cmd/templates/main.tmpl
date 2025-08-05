@@ -1,61 +1,43 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"{{.ModuleName}}/src/app/config"
-	"{{.ModuleName}}/src/infrastructure/databases"
+	"{{ .ModuleName }}/src/app/bootstrap"
+	"{{ .ModuleName }}/src/interface/routes"
 )
 
-func main() {
-	cfg := config.Load()
-	
-	// Connect to database
-	db, err := database.ConnectDB()
+func init() {
+	loc, err := time.LoadLocation("Asia/Jakarta")
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to load timezone: %v", err)
 	}
-	
-	// Get underlying sql.DB for connection management
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatal("Failed to get underlying sql.DB:", err)
-	}
-	defer sqlDB.Close()
-	
-	log.Println("✅ Database connected successfully")
-	
-	r := chi.NewRouter()
-	
-	// Middleware
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	
-	// Health check endpoint
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "OK",
-			"message": "Server is running",
-		})
-	})
-	
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Hello, World!",
-			"app": "{{.ModuleName}}",
-		})
-	})
+	time.Local = loc
+}
 
-	log.Printf("🚀 Server starting on :%s", cfg.Port)
-	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
-		log.Fatal("Failed to start server:", err)
+func main() {
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
 	}
+	defer logFile.Close()
+
+	// Atur log agar ditulis ke file
+	log.SetOutput(logFile)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	deps := bootstrap.InitDependencies()
+
+	router := routes.InitRouter(deps)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println("Server running on port", port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

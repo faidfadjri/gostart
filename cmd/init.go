@@ -82,6 +82,7 @@ func generateTemplateFiles(data types.TemplateData) {
 		"src/app/config/config.go":                    "templates/config.tmpl",
 		"src/interface/response/response.go":          "templates/response.tmpl",
 		"src/interface/request/request.go":            "templates/request.tmpl",
+		"src/interface/routes/router.go":              "templates/router.tmpl",
 		"src/infrastructure/databases/models/user.go": "templates/models.tmpl",
 	}
 
@@ -149,10 +150,13 @@ func printNextSteps() {
 	fmt.Println("")
 	fmt.Println("--------------------------------------------------")
 	fmt.Println("🛠 Generate components like a pro with:")
+	fmt.Println("")
 	fmt.Println("  👉 gostart create usecase <name>")
 	fmt.Println("  👉 gostart create repository <name>")
 	fmt.Println("  👉 gostart feature <name> (auto generate all)")
 	fmt.Println("")
 	fmt.Println("--------------------------------------------------")
 	fmt.Println("💙 Happy Coding! Don't forget to pet the gopher 🐹")
+	fmt.Println("See my portfolio here: https://faidfadjri.github.io/")
+	fmt.Println("")
 }

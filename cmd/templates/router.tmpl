@@ -1,0 +1,17 @@
+package routes
+
+import (
+	"net/http"
+	"{{ .ModuleName }}/src/app/bootstrap"
+	"github.com/go-chi/chi/v5"
+)
+
+func InitRouter(deps *bootstrap.Dependencies) http.Handler {
+	r := chi.NewRouter()
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, world!"))
+	})
+
+	return r
+}
