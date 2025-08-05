@@ -11,4 +11,5 @@ func init() {
 	CreateCmd.AddCommand(HandlerCmd)
 	CreateCmd.AddCommand(UsecaseCmd)
 	CreateCmd.AddCommand(RepositoryCmd)
+	CreateCmd.AddCommand(FeatureCmd)
 }
