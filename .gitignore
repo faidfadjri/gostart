@@ -2,6 +2,6 @@
 .env.example
 .air.toml
 cmd/main.go
-src
+internal
 tmp
 log.txt

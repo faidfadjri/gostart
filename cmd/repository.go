@@ -34,7 +34,7 @@ var RepositoryCmd = &cobra.Command{
 		caser := cases.Title(language.English)
 		serviceName := caser.String(name)
 
-		destDir := fmt.Sprintf("src/infrastructure/repositories/%s", name)
+		destDir := fmt.Sprintf("internal/infrastructure/repositories/%s", name)
 		if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 			log.Fatalf("❌ Failed to create repositories directory: %v", err)
 		}
@@ -83,7 +83,7 @@ var RepositoryCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("❌ Failed to create/update repositories.go: %v", err)
 		}
-		fmt.Println("✅ Repositories index updated at: src/infrastructure/repositories/repositories.go")
+		fmt.Println("✅ Repositories index updated at: internal/infrastructure/repositories/repositories.go")
 	},
 }
 
@@ -93,7 +93,7 @@ func createOrUpdateRepositoriesIndex(serviceName, name string) error {
 		return fmt.Errorf("failed to get module name: %w", err)
 	}
 
-	repositoriesPath := "src/infrastructure/repositories/repositories.go"
+	repositoriesPath := "internal/infrastructure/repositories/repositories.go"
 
 	if _, err := os.Stat(repositoriesPath); os.IsNotExist(err) {
 		return createNewRepositoriesIndex(repositoriesPath, moduleName, serviceName, name)
@@ -104,7 +104,7 @@ func createOrUpdateRepositoriesIndex(serviceName, name string) error {
 func createNewRepositoriesIndex(path, moduleName, serviceName, name string) error {
 	content := fmt.Sprintf(`package repositories
 
-import "%s/src/infrastructure/repositories/%s"
+import "%s/internal/infrastructure/repositories/%s"
 
 type %sRepository = %s.%sRepository
 
@@ -174,7 +174,7 @@ func parseExistingRepositoryEntries(content, moduleName string) ([]RepositoryEnt
 	var entries []RepositoryEntry
 
 	// Extract imports
-	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/src/infrastructure/repositories/([^"]+)"`)
+	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/internal/infrastructure/repositories/([^"]+)"`)
 	importMatches := importRegex.FindAllStringSubmatch(content, -1)
 
 	// Extract type aliases
@@ -222,7 +222,7 @@ func generateCleanRepositoriesFile(entries []RepositoryEntry) string {
 	if len(entries) > 0 {
 		buf.WriteString("import (\n")
 		for _, entry := range entries {
-			buf.WriteString(fmt.Sprintf("\t\"%s/src/infrastructure/repositories/%s\"\n", entry.ModuleName, entry.Name))
+			buf.WriteString(fmt.Sprintf("\t\"%s/internal/infrastructure/repositories/%s\"\n", entry.ModuleName, entry.Name))
 		}
 		buf.WriteString(")\n\n")
 	}

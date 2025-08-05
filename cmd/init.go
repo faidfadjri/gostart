@@ -41,16 +41,16 @@ func runInit(cmd *cobra.Command, args []string) {
 
 func createFolders() {
 	dirs := []string{
-		"src/app/controllers",
-		"src/app/usecases",
-		"src/app/config",
-		"src/infrastructure/middlewares",
-		"src/infrastructure/databases/models",
-		"src/infrastructure/repositories",
-		"src/infrastructure/services",
-		"src/interface/handlers",
-		"src/interface/request",
-		"src/interface/response",
+		"internal/app/controllers",
+		"internal/app/usecases",
+		"internal/app/config",
+		"internal/infrastructure/middlewares",
+		"internal/infrastructure/databases/models",
+		"internal/infrastructure/repositories",
+		"internal/infrastructure/services",
+		"internal/interface/handlers",
+		"internal/interface/request",
+		"internal/interface/response",
 	}
 
 	for _, dir := range dirs {
@@ -73,17 +73,17 @@ func resolveModuleName() string {
 func generateTemplateFiles(data types.TemplateData) {
 	files := map[string]string{
 		"cmd/main.go":                        "templates/main.tmpl",
-		"src/app/bootstrap/bootstrap.go":     "templates/bootstrap.tmpl",
+		"internal/app/bootstrap/bootstrap.go":     "templates/bootstrap.tmpl",
 		".air.toml":                          "templates/air.tmpl",
-		"src/infrastructure/databases/db.go": "templates/db.tmpl",
+		"internal/infrastructure/databases/db.go": "templates/db.tmpl",
 		// ".gitignore":                         "templates/gitignore.tmpl",
 		// "README.md":                                   "templates/readme.tmpl",
 		".env.example":                                "templates/env.tmpl",
-		"src/app/config/config.go":                    "templates/config.tmpl",
-		"src/interface/response/response.go":          "templates/response.tmpl",
-		"src/interface/request/request.go":            "templates/request.tmpl",
-		"src/interface/routes/router.go":              "templates/router.tmpl",
-		"src/infrastructure/databases/models/user.go": "templates/models.tmpl",
+		"internal/app/config/config.go":                    "templates/config.tmpl",
+		"internal/interface/response/response.go":          "templates/response.tmpl",
+		"internal/interface/request/request.go":            "templates/request.tmpl",
+		"internal/interface/routes/router.go":              "templates/router.tmpl",
+		"internal/infrastructure/databases/models/user.go": "templates/models.tmpl",
 	}
 
 	for outPath, tmplPath := range files {

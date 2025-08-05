@@ -34,7 +34,7 @@ var UsecaseCmd = &cobra.Command{
 		caser := cases.Title(language.English)
 		serviceName := caser.String(name)
 
-		destDir := fmt.Sprintf("src/app/usecases/%s", name)
+		destDir := fmt.Sprintf("internal/app/usecases/%s", name)
 		if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 			log.Fatalf("❌ Failed to create usecases directory: %v", err)
 		}
@@ -86,7 +86,7 @@ var UsecaseCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("❌ Failed to create/update usecases.go: %v", err)
 		}
-		fmt.Println("✅ Usecases index updated at: src/app/usecases/usecases.go")
+		fmt.Println("✅ Usecases index updated at: internal/app/usecases/usecases.go")
 	},
 }
 
@@ -96,7 +96,7 @@ func createOrUpdateUsecasesIndex(serviceName, name string) error {
 		return fmt.Errorf("failed to get module name: %w", err)
 	}
 
-	usecasesPath := "src/app/usecases/usecases.go"
+	usecasesPath := "internal/app/usecases/usecases.go"
 
 	if _, err := os.Stat(usecasesPath); os.IsNotExist(err) {
 		return createNewUsecasesIndex(usecasesPath, moduleName, serviceName, name)
@@ -107,7 +107,7 @@ func createOrUpdateUsecasesIndex(serviceName, name string) error {
 func createNewUsecasesIndex(path, moduleName, serviceName, name string) error {
 	content := fmt.Sprintf(`package usecases
 
-import "%s/src/app/usecases/%s"
+import "%s/internal/app/usecases/%s"
 
 type %sUsecase = %s.%sUsecase
 
@@ -177,7 +177,7 @@ func parseExistingEntries(content, moduleName string) ([]UsecaseEntry, error) {
 	var entries []UsecaseEntry
 
 	// Extract imports
-	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/src/app/usecases/([^"]+)"`)
+	importRegex := regexp.MustCompile(`"` + regexp.QuoteMeta(moduleName) + `/internal/app/usecases/([^"]+)"`)
 	importMatches := importRegex.FindAllStringSubmatch(content, -1)
 
 	// Extract type aliases
@@ -225,7 +225,7 @@ func generateCleanUsecasesFile(entries []UsecaseEntry) string {
 	if len(entries) > 0 {
 		buf.WriteString("import (\n")
 		for _, entry := range entries {
-			buf.WriteString(fmt.Sprintf("\t\"%s/src/app/usecases/%s\"\n", entry.ModuleName, entry.Name))
+			buf.WriteString(fmt.Sprintf("\t\"%s/internal/app/usecases/%s\"\n", entry.ModuleName, entry.Name))
 		}
 		buf.WriteString(")\n\n")
 	}

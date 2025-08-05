@@ -31,7 +31,7 @@ var FeatureCmd = &cobra.Command{
 		}
 
 		// Bootstrap path
-		bootstrapPath := filepath.Join("src", "app", "bootstrap", "bootstrap.go")
+		bootstrapPath := filepath.Join("internal", "app", "bootstrap", "bootstrap.go")
 		if _, err := os.Stat(bootstrapPath); os.IsNotExist(err) {
 			err := os.MkdirAll(filepath.Dir(bootstrapPath), os.ModePerm)
 			if err != nil {
@@ -82,7 +82,7 @@ func InitDependencies() *Dependencies {
 
 func injectToBootstrap(name, pascal string) error {
 	module, _ := getModuleName()
-	path := "src/app/bootstrap/bootstrap.go"
+	path := "internal/app/bootstrap/bootstrap.go"
 	contentBytes, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -91,10 +91,10 @@ func injectToBootstrap(name, pascal string) error {
 
 	imports := map[string]string{
 		`"log"`: "log",
-		`"` + module + `/src/infrastructure/database"`:     "database",
-		`"` + module + `/src/infrastructure/repositories"`: "repositories",
-		`"` + module + `/src/interface/handler"`:           "handler",
-		`"` + module + `/src/app/usecases"`:                "usecases",
+		`"` + module + `/internal/infrastructure/database"`:     "database",
+		`"` + module + `/internal/infrastructure/repositories"`: "repositories",
+		`"` + module + `/internal/interface/handler"`:           "handler",
+		`"` + module + `/internal/app/usecases"`:                "usecases",
 	}
 
 	// Inject missing imports

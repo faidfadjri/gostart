@@ -7,7 +7,7 @@
 ## 📁 Project Structure
 
 ```
-src/
+internal/
 ├── app/
 │   ├── controllers/        # Business logic controllers
 │   ├── usecases/           # Application use cases
