@@ -1,6 +1,6 @@
 # GoStart 🚀
 
-gostart is a mini code generator that you can used for creating clean structure for your Go Project such as usecases,repositories, handlers etc
+GoStart is a mini code generator that you can used for creating clean structure by implement Hexagonal Clean Architecture for your Go Project such as usecases,repositories, handlers etc
 
 ## Project Structure
 
