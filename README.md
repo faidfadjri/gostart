@@ -42,25 +42,30 @@ internal/
    ```bash
    go install github.com/faidfadjri/gostart@1.1.0
    ```
-2. Copy the `.env.example` file to `.env` and update the environment variables as needed.
-3. Install the dependencies:
+2. Create a new project
+   ```bash
+   gostart init
+   ```
+   This will creates a folder structure templates
+3. Copy the `.env.example` file to `.env` and update the environment variables as needed.
+4. Install the dependencies:
    ```bash
    go mod tidy
    ```
-4. Install Air Verse for Hot Reload
+5. Install Air Verse for Hot Reload
    ```bash
    go install github.com/air-verse/air@latest
    ```
-5. Run the Application
+6. Run the Application
    ```bash
    air
    ```
-6. Congrats! Your API live now! Try to access it
+7. Congrats! Your API live now! Try to access it
    ```
    http://localhost:8000/
    ```
-7. Run with Docker Compose (optional if you're using docker)
-   ```
+8. Run with Docker Compose (optional if you're using docker)
+   ```bash
    docker-compose up -d
    ```
 
