@@ -59,6 +59,10 @@ internal/
    ```
    http://localhost:8000/
    ```
+7. Run with Docker Compose (optional if you're using docker)
+   ```
+   docker-compose up -d
+   ```
 
 ---
 
