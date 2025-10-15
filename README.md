@@ -1,4 +1,3 @@
-# GoStart 🚀
 
 **GoStart** is a lightweight code generator tool to help you quickly build a clean and maintainable Go project structure following the **Hexagonal Architecture** pattern.
 
@@ -82,6 +81,9 @@ gostart create handler <name>
 
 # Generate a new feature it will generate: repository, usecase, handler
 gostart create feature <name>
+
+# Generate Dockerfile with docker-compose.yaml (only work with 1.1.x version)
+gostart docker
 ```
 
 Replace `<name>` with your feature name (e.g., `user`, `task`, `auth`, etc).

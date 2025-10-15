@@ -15,6 +15,7 @@ var rootCmd = &cobra.Command{
 func main() {
 	rootCmd.AddCommand(cmd.CreateCmd)
 	rootCmd.AddCommand(cmd.InitCmd)
+	rootCmd.AddCommand(cmd.DockerCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)

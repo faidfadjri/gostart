@@ -45,6 +45,7 @@ func createFolders() {
 		"internal/app/config",
 		"internal/infrastructure/middlewares",
 		"internal/infrastructure/databases/models",
+		"internal/infrastructure/databases/queries",
 		"internal/infrastructure/repositories",
 		"internal/infrastructure/services",
 		"internal/interface/handlers",
@@ -71,13 +72,13 @@ func resolveModuleName() string {
 
 func generateTemplateFiles(data types.TemplateData) {
 	files := map[string]string{
-		"cmd/main.go":                        "templates/main.tmpl",
+		"cmd/main.go":                             "templates/main.tmpl",
 		"internal/app/bootstrap/bootstrap.go":     "templates/bootstrap.tmpl",
-		".air.toml":                          "templates/air.tmpl",
+		".air.toml":                               "templates/air.tmpl",
 		"internal/infrastructure/databases/db.go": "templates/db.tmpl",
 		// ".gitignore":                         "templates/gitignore.tmpl",
 		// "README.md":                                   "templates/readme.tmpl",
-		".env.example":                                "templates/env.tmpl",
+		".env.example":                                     "templates/env.tmpl",
 		"internal/app/config/config.go":                    "templates/config.tmpl",
 		"internal/interface/response/response.go":          "templates/response.tmpl",
 		"internal/interface/request/request.go":            "templates/request.tmpl",
