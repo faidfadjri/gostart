@@ -40,7 +40,7 @@ internal/
 
 1. Install Package
    ```bash
-   go install github.com/faidfadjri/gostart@latest
+   go install github.com/faidfadjri/gostart@1.1.0
    ```
 2. Copy the `.env.example` file to `.env` and update the environment variables as needed.
 3. Install the dependencies:
