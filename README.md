@@ -83,10 +83,11 @@ gostart create handler <name>
 gostart create feature <name>
 
 # Generate Dockerfile with docker-compose.yaml (only work with 1.1.x version)
-gostart docker
+gostart docker <app_name>
 ```
 
-Replace `<name>` with your feature name (e.g., `user`, `task`, `auth`, etc).
+Replace `<name>` with your feature name (for example: `user`, `task`, `auth`, etc).  
+Replace `<app_name>` with your application name (for example: `cashier-api`, etc).
 
 ---
 
