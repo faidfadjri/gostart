@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 
+	"github.com/faidfadjri/gostart/cmd/types"
 	"github.com/spf13/cobra"
 )
 
@@ -18,11 +20,15 @@ var dockerfileTemplate string
 var dockerComposeTemplate string
 
 var DockerCmd = &cobra.Command{
-	Use:   "docker",
+	Use:   "docker [name]",
 	Short: "Generate Dockerfile and docker-compose.yml",
 	Run: func(cmd *cobra.Command, args []string) {
 		generateDockerfile()
-		generateDockerCompose()
+		serviceName := "app"
+		if len(args) > 0 && args[0] != "" {
+			serviceName = args[0]
+		}
+		generateDockerCompose(serviceName)
 	},
 }
 
@@ -44,14 +50,19 @@ func generateDockerfile() {
 	fmt.Println("✅ Dockerfile generated successfully.")
 }
 
-func generateDockerCompose() {
+func generateDockerCompose(serviceName string) {
 	tmpl, err := template.New("docker-compose").Parse(dockerComposeTemplate)
 	if err != nil {
 		log.Fatalf("❌ Failed to parse docker-compose template: %v", err)
 	}
 
+	data := types.TemplateData{
+		ServiceName:      serviceName,
+		ServiceNameLower: strings.ToLower(serviceName),
+	}
+
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, nil); err != nil {
+	if err := tmpl.Execute(&buf, data); err != nil {
 		log.Fatalf("❌ Failed to execute docker-compose template: %v", err)
 	}
 
