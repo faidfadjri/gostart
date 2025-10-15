@@ -1,62 +1,63 @@
 package cmd
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
-	"io"
+	"log"
 	"os"
-	"path/filepath"
+	"text/template"
 
 	"github.com/spf13/cobra"
 )
 
+//go:embed templates/dockerfile.tmpl
+var dockerfileTemplate string
+
+//go:embed templates/docker_compose.tmpl
+var dockerComposeTemplate string
+
 var DockerCmd = &cobra.Command{
 	Use:   "docker",
 	Short: "Generate Dockerfile and docker-compose.yml",
-}
-
-func init() {
-	DockerCmd.Run = func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
 		generateDockerfile()
 		generateDockerCompose()
-	}
+	},
 }
 
 func generateDockerfile() {
-	src := filepath.Join("cmd", "templates", "Dockerfile.tmpl")
-	dst := "Dockerfile"
-	if err := copyFile(src, dst); err != nil {
-		fmt.Printf("Error generating Dockerfile: %v\n", err)
-	} else {
-		fmt.Println("Dockerfile generated successfully.")
+	tmpl, err := template.New("Dockerfile").Parse(dockerfileTemplate)
+	if err != nil {
+		log.Fatalf("❌ Failed to parse Dockerfile template: %v", err)
 	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, nil); err != nil {
+		log.Fatalf("❌ Failed to execute Dockerfile template: %v", err)
+	}
+
+	dst := "Dockerfile"
+	if err := os.WriteFile(dst, buf.Bytes(), 0644); err != nil {
+		log.Fatalf("❌ Error generating Dockerfile: %v", err)
+	}
+	fmt.Println("✅ Dockerfile generated successfully.")
 }
 
 func generateDockerCompose() {
-	src := filepath.Join("cmd", "templates", "docker_compose.tmpl")
+	tmpl, err := template.New("docker-compose").Parse(dockerComposeTemplate)
+	if err != nil {
+		log.Fatalf("❌ Failed to parse docker-compose template: %v", err)
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, nil); err != nil {
+		log.Fatalf("❌ Failed to execute docker-compose template: %v", err)
+	}
+
 	dst := "docker-compose.yaml"
-	if err := copyFile(src, dst); err != nil {
-		fmt.Printf("Error generating docker-compose.yaml: %v\n", err)
-	} else {
-		fmt.Println("docker-compose.yaml generated successfully.")
+	if err := os.WriteFile(dst, buf.Bytes(), 0644); err != nil {
+		log.Fatalf("❌ Error generating docker-compose.yaml: %v", err)
 	}
-}
-
-func copyFile(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	if err != nil {
-		return err
-	}
-	return out.Sync()
+	fmt.Println("✅ docker-compose.yaml generated successfully.")
 }
