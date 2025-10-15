@@ -93,7 +93,7 @@ func injectToBootstrap(name, pascal string) error {
 		`"log"`: "log",
 		`"` + module + `/internal/infrastructure/database"`:     "database",
 		`"` + module + `/internal/infrastructure/repositories"`: "repositories",
-		`"` + module + `/internal/interface/handler"`:           "handler",
+		`"` + module + `/internal/interface/handlers"`:          "handlers",
 		`"` + module + `/internal/app/usecases"`:                "usecases",
 	}
 
