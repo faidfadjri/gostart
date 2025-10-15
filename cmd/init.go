@@ -41,7 +41,6 @@ func runInit(cmd *cobra.Command, args []string) {
 
 func createFolders() {
 	dirs := []string{
-		"internal/app/controllers",
 		"internal/app/usecases",
 		"internal/app/config",
 		"internal/infrastructure/middlewares",
